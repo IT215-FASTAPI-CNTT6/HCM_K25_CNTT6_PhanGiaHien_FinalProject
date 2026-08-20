@@ -10,17 +10,17 @@ DATABASE_URL = settings.DATABASE_URL
 engine = create_engine(DATABASE_URL)
 
 # Tạo SessionLocal class, mỗi instance là một session làm việc với database
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False, 
+    autoflush=False, 
+    bind=engine
+    )
 
 # Base class cho tất cả các ORM models
 Base = declarative_base()
 
 
 def get_db():
-    """
-    Dependency generator để cung cấp database session cho mỗi request.
-    Đảm bảo session được đóng sau khi request hoàn thành.
-    """
     db = SessionLocal()
     try:
         yield db

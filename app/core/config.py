@@ -2,15 +2,18 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # --- Cấu hình Database ---
-    # Đọc từ biến môi trường DATABASE_URL trong file .env
+    APP_NAME: str = "Research Group Management API"
+    ENVIRONMENT: str = "development"
+
     DATABASE_URL: str
 
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
     class Config:
-        # Chỉ định file .env để tự động đọc biến môi trường
         env_file = ".env"
-        env_file_encoding = "utf-8"
+        extra = "ignore"
 
-
-# Khởi tạo một instance duy nhất để dùng cho toàn bộ ứng dụng
 settings = Settings()
