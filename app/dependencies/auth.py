@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, ExpiredSignatureError, jwt
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -8,15 +8,15 @@ from app.db.database import get_db
 from app.models.user import User
 
 
-security = HTTPBearer()
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/auth/login"
+)
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
-
-    token = credentials.credentials
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,6 +35,12 @@ def get_current_user(
         if user_id is None:
             raise credentials_exception
 
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired"
+        )
+
     except JWTError:
         raise credentials_exception
 
@@ -44,5 +50,11 @@ def get_current_user(
 
     if user is None:
         raise credentials_exception
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account is inactive"
+        )
 
     return user
