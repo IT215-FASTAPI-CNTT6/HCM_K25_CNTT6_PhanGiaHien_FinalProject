@@ -2,8 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.schemas.user import UserCreate, UserResponse
-from app.services.auth_service import register_user
+from app.schemas.user import (
+    UserCreate,
+    UserResponse,
+    UserLogin
+)
+from app.services.auth_service import (
+    register_user,
+    login_user
+)
+from app.core.security import create_access_token
 
 
 router = APIRouter(
@@ -21,7 +29,6 @@ def register(
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ):
-    """Đăng ký tài khoản mới."""
 
     new_user = register_user(
         db=db,
@@ -35,3 +42,31 @@ def register(
         )
 
     return new_user
+
+
+@router.post("/login")
+def login(
+    user_data: UserLogin,
+    db: Session = Depends(get_db)
+):
+
+    user = login_user(
+        db=db,
+        email=user_data.email,
+        password=user_data.password
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    access_token = create_access_token(
+        data={"sub": str(user.id)}
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }

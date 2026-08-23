@@ -2,16 +2,17 @@ from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.schemas.user import UserCreate
-from app.core.security import hash_password
+from app.core.security import (
+    hash_password,
+    verify_password
+)
 
 
 def register_user(
     db: Session,
     user_data: UserCreate
 ):
-    """Đăng ký một tài khoản mới."""
 
-    # Kiểm tra email đã tồn tại hay chưa
     existing_user = db.query(User).filter(
         User.email == user_data.email
     ).first()
@@ -19,7 +20,6 @@ def register_user(
     if existing_user:
         return None
 
-    # Tạo user mới
     new_user = User(
         email=user_data.email,
         full_name=user_data.full_name,
@@ -28,9 +28,30 @@ def register_user(
         )
     )
 
-    # Lưu vào database
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
     return new_user
+
+
+def login_user(
+    db: Session,
+    email: str,
+    password: str
+):
+
+    user = db.query(User).filter(
+        User.email == email
+    ).first()
+
+    if user is None:
+        return None
+
+    if not verify_password(
+        password,
+        user.password_hash
+    ):
+        return None
+
+    return user
