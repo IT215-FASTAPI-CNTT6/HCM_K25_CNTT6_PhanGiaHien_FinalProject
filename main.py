@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from app.routers.users import router as users_router
 from app.db.database import Base, engine
 from app.models.user import User
 from app.models.research_project import ResearchProject, ResearchMember
@@ -22,7 +22,7 @@ register_exception_handlers(app)
 # Đăng ký router
 app.include_router(health_router)
 app.include_router(auth_router)
-
+app.include_router(users_router)
 
 @app.get("/")
 def root():
