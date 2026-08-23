@@ -3,10 +3,10 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
 
-# Chuỗi kết nối MySQL lấy từ file .env
+# kết nối MySQL lấy từ .env
 DATABASE_URL = settings.DATABASE_URL
 
-# Khởi tạo SQLAlchemy Engine để kết nối tới MySQL
+# tạo Engine để kết nối tới MySQL
 engine = create_engine(DATABASE_URL)
 
 # Tạo SessionLocal class, mỗi instance là một session làm việc với database

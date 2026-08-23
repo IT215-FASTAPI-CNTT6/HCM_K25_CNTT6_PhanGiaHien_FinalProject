@@ -46,15 +46,9 @@ class ResearchProject(Base):
 
 
 class ResearchMember(Base):
-    """
-    Bảng trung gian giữa User và ResearchProject.
-    Một user có thể tham gia nhiều project.
-    Một project có thể có nhiều user.
-    """
-
     __tablename__ = "research_members"
 
-    # Không cho cùng một user tham gia cùng một project nhiều lần
+    # cùng một user không thể tham gia cùng một project nhiều lần
     __table_args__ = (
         UniqueConstraint(
             "project_id",
