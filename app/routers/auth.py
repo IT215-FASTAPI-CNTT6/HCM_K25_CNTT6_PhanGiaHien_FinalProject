@@ -38,7 +38,7 @@ def register(
     if new_user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already exists"
+            detail="Email đã tồn tại"
         )
 
     return new_user
@@ -59,13 +59,13 @@ def login(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
+            detail="Tài khoản hoặc mật khẩu không hợp lệ"
         )
 
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is inactive"
+            detail="Tài khoản không hoạt động"
         )
 
     access_token = create_access_token(

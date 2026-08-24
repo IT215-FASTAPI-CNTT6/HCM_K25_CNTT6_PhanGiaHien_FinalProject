@@ -10,7 +10,7 @@ def require_admin(
     if current_user.role != "ADMIN":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin permission required"
+            detail="Yêu cầu quyền quản trị viên"
         )
 
     return current_user
