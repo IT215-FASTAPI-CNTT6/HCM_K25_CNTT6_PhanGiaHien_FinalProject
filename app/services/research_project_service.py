@@ -35,3 +35,23 @@ def create_research_project(
     db.commit()
 
     return project
+
+
+def get_research_projects(
+    user_id: int,
+    search: str | None,
+    db: Session
+):
+
+    query = db.query(ResearchProject).join(
+        ResearchMember
+    ).filter(
+        ResearchMember.user_id == user_id
+    )
+
+    if search:
+        query = query.filter(
+            ResearchProject.name.contains(search)
+        )
+
+    return query.all()
