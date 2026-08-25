@@ -55,3 +55,27 @@ def get_research_projects(
         )
 
     return query.all()
+
+
+def get_research_project(
+    project_id: int,
+    user_id: int,
+    db: Session
+):
+
+    project = db.query(ResearchProject).filter(
+        ResearchProject.id == project_id
+    ).first()
+
+    if project is None:
+        return None
+
+    member = db.query(ResearchMember).filter(
+        ResearchMember.project_id == project_id,
+        ResearchMember.user_id == user_id
+    ).first()
+
+    if member is None:
+        return None
+
+    return project

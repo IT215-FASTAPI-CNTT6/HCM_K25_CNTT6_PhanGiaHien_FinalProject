@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -10,7 +10,8 @@ from app.schemas.research_project import (
 )
 from app.services.research_project_service import (
     create_research_project,
-    get_research_projects
+    get_research_projects,
+    get_research_project
 )
 
 
@@ -57,3 +58,28 @@ def get_projects(
     )
 
     return projects
+
+
+@router.get(
+    "/{project_id}",
+    response_model=ResearchProjectResponse
+)
+def get_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    project = get_research_project(
+        project_id=project_id,
+        user_id=current_user.id,
+        db=db
+    )
+
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Research project not found"
+        )
+
+    return project
