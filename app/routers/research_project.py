@@ -85,7 +85,7 @@ def get_project(
     if project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Research project not found"
+            detail="Không tìm thấy dự án nghiên cứu"
         )
 
     return project
@@ -112,13 +112,13 @@ def update_project(
     if project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Research project not found"
+            detail="Không tìm thấy dự án ngiên cứu"
         )
 
     if project == "FORBIDDEN":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only owner can update research project"
+            detail="Chỉ owner mới có thể cập nhật dự án nghiên cứu"
         )
 
     return project
@@ -143,13 +143,13 @@ def delete_project(
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Research project not found"
+            detail="Không tìm thấy dự án"
         )
 
     if result == "FORBIDDEN":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only owner can delete research project"
+            detail="Chỉ owner mới có thể xóa dự án"
         )
 
 
@@ -175,25 +175,25 @@ def add_member(
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Research project not found"
+            detail="Không tìm thấy dự án nghiên cứu"
         )
 
     if member == "FORBIDDEN":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only owner can add members"
+            detail="Chỉ owner mới có quyền thêm thành viên"
         )
 
     if member == "USER_NOT_FOUND":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            detail="Không tìm thấy người dùng"
         )
 
     if member == "MEMBER_EXISTS":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User is already a member"
+            detail="Người dùng đã là thành viên"
         )
 
     return member

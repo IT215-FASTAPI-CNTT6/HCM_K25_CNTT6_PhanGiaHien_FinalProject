@@ -99,7 +99,7 @@ def update_research_project(
         return None
 
     if project.owner_id != user_id:
-        return "FORBIDDEN"
+        return "Không được phép"
 
     if project_data.name is not None:
         project.name = project_data.name
@@ -127,7 +127,7 @@ def delete_research_project(
         return None
 
     if project.owner_id != user_id:
-        return "FORBIDDEN"
+        return "Không được phép"
 
     db.delete(project)
     db.commit()
@@ -150,14 +150,14 @@ def add_research_member(
         return None
 
     if project.owner_id != owner_id:
-        return "FORBIDDEN"
+        return "Không được phép"
 
     user = db.query(User).filter(
         User.id == member_data.user_id
     ).first()
 
     if user is None:
-        return "USER_NOT_FOUND"
+        return "Không tìm thấy người dùng"
 
     member = db.query(ResearchMember).filter(
         ResearchMember.project_id == project_id,
@@ -165,7 +165,7 @@ def add_research_member(
     ).first()
 
     if member is not None:
-        return "MEMBER_EXISTS"
+        return "Thành viên đã tồn tại"
 
     new_member = ResearchMember(
         project_id=project_id,
