@@ -1,32 +1,41 @@
-from pydantic import BaseModel
+
+#  Schema dùng chung cho Project
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
-
-# Schema dùng chung cho Project
 class ResearchProjectBase(BaseModel):
-    name: str
+
+    name: str = Field(
+        min_length=1,
+        max_length=255
+    )
+
     description: str | None = None
 
 
-# Schema tạo Project
 class ResearchProjectCreate(ResearchProjectBase):
     pass
 
 
-# Schema cập nhật Project
 class ResearchProjectUpdate(BaseModel):
-    name: str | None = None
+
+    name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=255
+    )
+
     description: str | None = None
 
 
-# Schema trả về Project
 class ResearchProjectResponse(ResearchProjectBase):
+
     id: int
     owner_id: int
-    created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True
+    )
 
 
 # Schema dùng chung cho thành viên Project
@@ -52,4 +61,6 @@ class ResearchMemberResponse(ResearchMemberBase):
 
     class Config:
         from_attributes = True
+
+        
 
