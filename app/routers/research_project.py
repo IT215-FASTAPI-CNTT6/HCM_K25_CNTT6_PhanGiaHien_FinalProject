@@ -7,14 +7,17 @@ from app.models.user import User
 from app.schemas.research_project import (
     ResearchProjectCreate,
     ResearchProjectUpdate,
-    ResearchProjectResponse
+    ResearchProjectResponse,
+    ResearchMemberCreate,
+    ResearchMemberResponse
 )
 from app.services.research_project_service import (
     create_research_project,
     get_research_projects,
     get_research_project,
     update_research_project,
-    delete_research_project
+    delete_research_project,
+    add_research_member
 )
 
 
@@ -148,3 +151,49 @@ def delete_project(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only owner can delete research project"
         )
+
+
+@router.post(
+    "/{project_id}/members",
+    response_model=ResearchMemberResponse,
+    status_code=status.HTTP_201_CREATED
+)
+def add_member(
+    project_id: int,
+    member_data: ResearchMemberCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    member = add_research_member(
+        project_id=project_id,
+        member_data=member_data,
+        owner_id=current_user.id,
+        db=db
+    )
+
+    if member is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Research project not found"
+        )
+
+    if member == "FORBIDDEN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only owner can add members"
+        )
+
+    if member == "USER_NOT_FOUND":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    if member == "MEMBER_EXISTS":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is already a member"
+        )
+
+    return member

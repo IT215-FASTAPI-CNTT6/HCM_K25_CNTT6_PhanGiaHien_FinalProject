@@ -1,12 +1,14 @@
 from sqlalchemy.orm import Session
 
+from app.models.user import User
 from app.models.research_project import (
     ResearchProject,
     ResearchMember
 )
 from app.schemas.research_project import (
     ResearchProjectCreate,
-    ResearchProjectUpdate
+    ResearchProjectUpdate,
+    ResearchMemberCreate
 )
 
 
@@ -131,3 +133,48 @@ def delete_research_project(
     db.commit()
 
     return True
+
+
+def add_research_member(
+    project_id: int,
+    member_data: ResearchMemberCreate,
+    owner_id: int,
+    db: Session
+):
+
+    project = db.query(ResearchProject).filter(
+        ResearchProject.id == project_id
+    ).first()
+
+    if project is None:
+        return None
+
+    if project.owner_id != owner_id:
+        return "FORBIDDEN"
+
+    user = db.query(User).filter(
+        User.id == member_data.user_id
+    ).first()
+
+    if user is None:
+        return "USER_NOT_FOUND"
+
+    member = db.query(ResearchMember).filter(
+        ResearchMember.project_id == project_id,
+        ResearchMember.user_id == member_data.user_id
+    ).first()
+
+    if member is not None:
+        return "MEMBER_EXISTS"
+
+    new_member = ResearchMember(
+        project_id=project_id,
+        user_id=member_data.user_id,
+        role=member_data.role
+    )
+
+    db.add(new_member)
+    db.commit()
+    db.refresh(new_member)
+
+    return new_member
