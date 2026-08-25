@@ -8,7 +8,8 @@ from app.models.research_project import (
 from app.schemas.research_project import (
     ResearchProjectCreate,
     ResearchProjectUpdate,
-    ResearchMemberCreate
+    ResearchMemberCreate,
+    ResearchMemberUpdate
 )
 
 
@@ -99,7 +100,7 @@ def update_research_project(
         return None
 
     if project.owner_id != user_id:
-        return "Không được phép"
+        return "FORBIDDEN"
 
     if project_data.name is not None:
         project.name = project_data.name
@@ -127,7 +128,7 @@ def delete_research_project(
         return None
 
     if project.owner_id != user_id:
-        return "Không được phép"
+        return "FORBIDDEN"
 
     db.delete(project)
     db.commit()
@@ -150,14 +151,14 @@ def add_research_member(
         return None
 
     if project.owner_id != owner_id:
-        return "Không được phép"
+        return "FORBIDDEN"
 
     user = db.query(User).filter(
         User.id == member_data.user_id
     ).first()
 
     if user is None:
-        return "Không tìm thấy người dùng"
+        return "USER_NOT_FOUND"
 
     member = db.query(ResearchMember).filter(
         ResearchMember.project_id == project_id,
@@ -165,7 +166,7 @@ def add_research_member(
     ).first()
 
     if member is not None:
-        return "Thành viên đã tồn tại"
+        return "MEMBER_EXISTS"
 
     new_member = ResearchMember(
         project_id=project_id,
@@ -178,3 +179,63 @@ def add_research_member(
     db.refresh(new_member)
 
     return new_member
+
+
+def get_research_members(
+    project_id: int,
+    user_id: int,
+    db: Session
+):
+
+    project = db.query(ResearchProject).filter(
+        ResearchProject.id == project_id
+    ).first()
+
+    if project is None:
+        return None
+
+    current_member = db.query(ResearchMember).filter(
+        ResearchMember.project_id == project_id,
+        ResearchMember.user_id == user_id
+    ).first()
+
+    if current_member is None:
+        return "FORBIDDEN"
+
+    return db.query(ResearchMember).filter(
+        ResearchMember.project_id == project_id
+    ).all()
+
+
+def delete_research_member(
+    project_id: int,
+    user_id: int,
+    owner_id: int,
+    db: Session
+):
+
+    project = db.query(ResearchProject).filter(
+        ResearchProject.id == project_id
+    ).first()
+
+    if project is None:
+        return None
+
+    if project.owner_id != owner_id:
+        return "FORBIDDEN"
+
+    member = db.query(ResearchMember).filter(
+        ResearchMember.project_id == project_id,
+        ResearchMember.user_id == user_id
+    ).first()
+
+    if member is None:
+        return "MEMBER_NOT_FOUND"
+
+    if member.role == "OWNER":
+        return "CANNOT_DELETE_OWNER"
+
+    db.delete(member)
+    db.commit()
+
+    return True

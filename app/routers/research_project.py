@@ -9,6 +9,7 @@ from app.schemas.research_project import (
     ResearchProjectUpdate,
     ResearchProjectResponse,
     ResearchMemberCreate,
+    ResearchMemberUpdate,
     ResearchMemberResponse
 )
 from app.services.research_project_service import (
@@ -17,7 +18,9 @@ from app.services.research_project_service import (
     get_research_project,
     update_research_project,
     delete_research_project,
-    add_research_member
+    add_research_member,
+    get_research_members,
+    delete_research_member
 )
 
 
@@ -197,3 +200,79 @@ def add_member(
         )
 
     return member
+
+
+
+@router.get(
+    "/{project_id}/members",
+    response_model=list[ResearchMemberResponse]
+)
+def get_members(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    members = get_research_members(
+        project_id=project_id,
+        user_id=current_user.id,
+        db=db
+    )
+
+    if members is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy dự án ngiên cứu"
+        )
+
+    if members == "FORBIDDEN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ các thành viên dự án mới có thể xem danh sách thành viên."
+        )
+
+    return members
+
+
+@router.delete(
+    "/{project_id}/members/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT
+)
+def delete_member(
+    project_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    result = delete_research_member(
+        project_id=project_id,
+        user_id=user_id,
+        owner_id=current_user.id,
+        db=db
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy dự án nghiên cứu"
+        )
+
+    if result == "FORBIDDEN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ owner mới có thể xóa thành viên dự án"
+        )
+
+    if result == "MEMBER_NOT_FOUND":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy thành viên dự án nghiên cứu"
+        )
+
+    if result == "CANNOT_DELETE_OWNER":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Không thể xóa owner của dự án"
+        )
+
