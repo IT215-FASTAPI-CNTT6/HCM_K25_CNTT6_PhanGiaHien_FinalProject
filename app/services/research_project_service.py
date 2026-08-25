@@ -5,7 +5,8 @@ from app.models.research_project import (
     ResearchMember
 )
 from app.schemas.research_project import (
-    ResearchProjectCreate
+    ResearchProjectCreate,
+    ResearchProjectUpdate
 )
 
 
@@ -79,3 +80,54 @@ def get_research_project(
         return None
 
     return project
+
+
+def update_research_project(
+    project_id: int,
+    project_data: ResearchProjectUpdate,
+    user_id: int,
+    db: Session
+):
+
+    project = db.query(ResearchProject).filter(
+        ResearchProject.id == project_id
+    ).first()
+
+    if project is None:
+        return None
+
+    if project.owner_id != user_id:
+        return "FORBIDDEN"
+
+    if project_data.name is not None:
+        project.name = project_data.name
+
+    if project_data.description is not None:
+        project.description = project_data.description
+
+    db.commit()
+    db.refresh(project)
+
+    return project
+
+
+def delete_research_project(
+    project_id: int,
+    user_id: int,
+    db: Session
+):
+
+    project = db.query(ResearchProject).filter(
+        ResearchProject.id == project_id
+    ).first()
+
+    if project is None:
+        return None
+
+    if project.owner_id != user_id:
+        return "FORBIDDEN"
+
+    db.delete(project)
+    db.commit()
+
+    return True

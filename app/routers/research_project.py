@@ -6,12 +6,15 @@ from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.schemas.research_project import (
     ResearchProjectCreate,
+    ResearchProjectUpdate,
     ResearchProjectResponse
 )
 from app.services.research_project_service import (
     create_research_project,
     get_research_projects,
-    get_research_project
+    get_research_project,
+    update_research_project,
+    delete_research_project
 )
 
 
@@ -83,3 +86,65 @@ def get_project(
         )
 
     return project
+
+
+@router.patch(
+    "/{project_id}",
+    response_model=ResearchProjectResponse
+)
+def update_project(
+    project_id: int,
+    project_data: ResearchProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    project = update_research_project(
+        project_id=project_id,
+        project_data=project_data,
+        user_id=current_user.id,
+        db=db
+    )
+
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Research project not found"
+        )
+
+    if project == "FORBIDDEN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only owner can update research project"
+        )
+
+    return project
+
+
+@router.delete(
+    "/{project_id}",
+    status_code=status.HTTP_204_NO_CONTENT
+)
+def delete_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    result = delete_research_project(
+        project_id=project_id,
+        user_id=current_user.id,
+        db=db
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Research project not found"
+        )
+
+    if result == "FORBIDDEN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only owner can delete research project"
+        )
